@@ -4,8 +4,8 @@ import tensorflow as tf
 
 def load_dataset():
 
-    images = np.load("../data/images.npy")
-    labels = np.load("../data/labels.npy")
+    images = np.load("data/images.npy")
+    labels = np.load("data/labels.npy")
     images = images.astype("float32")
     dataset = tf.data.Dataset.from_tensor_slices((images, labels))
     return dataset, images, labels
