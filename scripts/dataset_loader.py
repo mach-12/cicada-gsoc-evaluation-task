@@ -10,7 +10,7 @@ def load_dataset(batch_size=32):
     dataset = tf.data.Dataset.from_tensor_slices((images, labels))
     # Adding Batch Size
     dataset = dataset.batch(batch_size)
-    return dataset
+    return dataset, images, labels
 
 
 if __name__ == "__main__":
