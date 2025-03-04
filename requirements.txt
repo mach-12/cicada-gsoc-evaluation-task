@@ -1,0 +1,12 @@
+keras
+tensorflow
+numpy
+pandas
+scikit-learn
+matplotlib
+tensorboard
+optuna
+optuna-integration[tensorboard]
+pyyaml
+visualkeras
+ipykernel
