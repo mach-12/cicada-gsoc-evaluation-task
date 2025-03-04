@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def plot_pca_2d(images, labels, label_mapping={0: "Label 0", 1: "Label 1"}):
+def plot_pca_2d(images, labels, label_mapping):
     """
     Plots a 2D PCA visualization of images.
 
@@ -32,7 +32,7 @@ def plot_pca_2d(images, labels, label_mapping={0: "Label 0", 1: "Label 1"}):
     plt.show()
 
 
-def plot_pca_3d(images, labels, label_mapping={0: "Label 0", 1: "Label 1"}):
+def plot_pca_3d(images, labels, label_mapping):
     """
     Plots a 3D PCA visualization of images.
 
@@ -49,7 +49,7 @@ def plot_pca_3d(images, labels, label_mapping={0: "Label 0", 1: "Label 1"}):
     X_pca = pca.fit_transform(X)
 
     # Create the 3D scatter plot
-    fig = plt.figure(figsize=(8,6))
+    fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection="3d")
 
     for label in np.unique(labels):
@@ -148,7 +148,7 @@ def plot_combined_image(images, labels, label_target: int = 1):
     np.clip(sum_image, 0, 1)
 
     # Let's plot the input images and the result
-    fig, axes = plt.subplots(nrows=2, ncols=9, figsize=(8, 4))
+    fig, axes = plt.subplots(nrows=2, ncols=9, figsize=(12, 4))
     fig.suptitle(
         f"Image combination for Label {label_target}",
         fontsize=14,
