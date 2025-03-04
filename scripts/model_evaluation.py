@@ -57,7 +57,7 @@ def plot_confusion_matrix(
     cm_normalized = cm.astype("float") / cm.max()
 
     # Create the figure
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(6, 4))
     plt.imshow(cm, interpolation="nearest", cmap=cmap)
     plt.colorbar()
 
@@ -163,9 +163,6 @@ def plot_sample_predictions(
     )
     pred_classes = (predictions >= threshold).astype(int)
 
-    # Get confusion matrix components
-    tn, fp, fn, tp = confusion_matrix(true_labels, pred_classes).ravel()
-
     # Get indices of different types
     false_positives = np.where((pred_classes == 1) & (true_labels == 0))[0]
     false_negatives = np.where((pred_classes == 0) & (true_labels == 1))[0]
@@ -226,6 +223,100 @@ def plot_sample_predictions(
 
         if raw_predictions is not None:
             title_text += f"\nPred Value: {raw_predictions[idx]:.3f}"
+
+        plt.title(title_text, color=categories[category], fontdict={"fontsize": 10})
+
+        plt.axis("off")
+
+        # Adding information of the number so we know what we are talking about!
+        plt.text(
+            0.5,
+            -0.15,
+            f"#{i+1}",
+            fontsize=10,
+            ha="center",
+            va="top",
+            transform=plt.gca().transAxes,
+        )
+    plt.tight_layout()
+
+    # Add legend
+    legend_patches = [
+        mpatches.Patch(color=color, label=label) for label, color in categories.items()
+    ]
+    plt.figlegend(
+        handles=legend_patches, loc="upper center", ncol=4, bbox_to_anchor=(0.5, 1.05)
+    )
+
+    plt.show()
+
+
+def plot_model_output_predictions(
+    images,
+    true_labels,
+    predictions,
+    threshold=0.5,
+    num_samples=25,
+):
+    # Now NumPy uses JAX like method for setting RNG keys!
+    rng = np.random.default_rng(200)
+
+    pred_classes = predictions
+
+    # Get indices of different types
+    false_positives = np.where((pred_classes == 1) & (true_labels == 0))[0]
+    false_negatives = np.where((pred_classes == 0) & (true_labels == 1))[0]
+    true_positives = np.where((pred_classes == 1) & (true_labels == 1))[0]
+    true_negatives = np.where((pred_classes == 0) & (true_labels == 0))[0]
+
+    # Prioritize false positives & false negatives
+    selected_indices = (
+        np.random.choice(
+            false_positives, min(len(false_positives), num_samples // 3), replace=False
+        ).tolist()
+        + np.random.choice(
+            false_negatives, min(len(false_negatives), num_samples // 3), replace=False
+        ).tolist()
+    )
+
+    # Fill remaining slots with TP & TN
+    other_indices = np.concatenate((true_positives, true_negatives))
+    remaining_needed = num_samples - len(selected_indices)
+    if len(other_indices) > 0:
+        selected_indices += np.random.choice(
+            other_indices, min(len(other_indices), remaining_needed), replace=False
+        ).tolist()
+    rng.shuffle(selected_indices)  # Shuffle selection
+
+    categories = {
+        "True Positive": "green",
+        "False Positive": "red",
+        "True Negative": "blue",
+        "False Negative": "orange",
+    }
+
+    plt.figure(figsize=(12, 12))
+    for i, idx in enumerate(selected_indices):
+        plt.subplot(5, 5, i + 1)
+        plt.imshow(images[idx], cmap="gray")
+
+        # Determine category
+        pred_label, true_label = pred_classes[idx], true_labels[idx]
+        category = (
+            "True Positive"
+            if (pred_label, true_label) == (1, 1)
+            else (
+                "False Positive"
+                if (pred_label, true_label) == (1, 0)
+                else (
+                    "True Negative"
+                    if (pred_label, true_label) == (0, 0)
+                    else "False Negative"
+                )
+            )
+        )
+
+        title_text = f"True: {true_label}\nPred: {pred_label} ({category})"
 
         plt.title(title_text, color=categories[category], fontdict={"fontsize": 10})
 
@@ -331,4 +422,63 @@ def plot_sum_vs_model_output_plots(df):
     plt.legend()
     plt.grid(True)
 
+    plt.show()
+
+
+def plot_comparison_graph(report1, report2, model_name1, model_name2):
+    """
+    Compares two models based on accuracy and F1-scores using a side-by-side bar chart.
+    """
+
+    def extract_metrics(report):
+        return {
+            "Accuracy": report["accuracy"]["precision"],
+            "Label 0 F1-score": report["0"]["f1-score"],
+            "Label 1 F1-score": report["1"]["f1-score"],
+            "Label 0 Precision": report["0"]["precision"],
+            "Label 1 Precision": report["1"]["precision"],
+        }
+
+    given_model_metrics = extract_metrics(report1)
+    new_model_metrics = extract_metrics(report2)
+
+    metrics = list(given_model_metrics.keys())
+
+    metrics_data = {
+        "Metric": metrics,
+        model_name1: [given_model_metrics[metric] for metric in metrics],
+        model_name2: [new_model_metrics[metric] for metric in metrics],
+    }
+
+    metrics_df = pd.DataFrame(metrics_data)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    metrics_df.set_index("Metric").plot(kind="bar", width=0.7, ax=ax)
+
+    plt.title(
+        f"Comparison of {model_name1} and {model_name2}",
+        fontsize=14,
+        pad=20,
+    )
+    plt.ylabel("Score", fontsize=12)
+    plt.xlabel("Metrics", fontsize=12)
+    plt.xticks(rotation=0, fontsize=10)
+    plt.yticks(fontsize=10)
+    plt.legend(title="Models", fontsize=11, loc="lower right")
+
+    plt.ylim(0, 1.19)
+
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+    for bar in ax.patches:
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.03,
+            f"{height:.3f}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
+
+    plt.tight_layout()
     plt.show()
