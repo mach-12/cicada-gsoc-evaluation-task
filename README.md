@@ -1,1 +1,1 @@
-# cicada-gsoc-evaluation-task
+# Cicada GSOC Evaluation Task
