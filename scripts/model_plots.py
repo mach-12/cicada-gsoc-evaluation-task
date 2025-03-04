@@ -3,7 +3,7 @@ import visualkeras
 
 
 def plot_model_prediction_histogram(predictions, threshold):
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(8, 4))
     plt.hist(predictions, bins=50, alpha=0.7)
     plt.axvline(
         x=threshold, color="r", linestyle="--", label=f"Default threshold ({threshold})"
