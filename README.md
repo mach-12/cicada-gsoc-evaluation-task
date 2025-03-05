@@ -47,6 +47,8 @@ Authored by [Mann Acharya](https://github.com/mach-12/)
 
 ![Autoencoder Architecture](plots/autoencoder_architecture.png)
 
+The Autoencoder creates feature representations of the input, which is passed to a Network of 8 Dense Neurons. The encoder stays frozen and only the NN is trained. I go in details about the choices and working of this in the [training.ipynb](training.ipynb) file.
+
 ## Hyperparameter Tuning using Optuna and Tensorboard
 
 <p align="center">
